@@ -1,4 +1,4 @@
-# Stanford_Introduction_to_Convolutional_Neural_Networks
+# Stanford CS231n Convolutional Neural Networks for Visual Recognition
 
 ## Lectures
 
