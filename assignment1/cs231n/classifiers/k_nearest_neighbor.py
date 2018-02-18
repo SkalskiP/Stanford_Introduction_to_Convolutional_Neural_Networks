@@ -139,10 +139,11 @@ class KNearestNeighbor(object):
     #########################################################################
     
     # (test-train)^2 = test^2 + train^2 - 2 * test * train
-    test_sum = ((X ** 2)).sum(axis=1)                       # Output shape: num_test x 1
+    """test_sum = ((X ** 2)).sum(axis=1)                       # Output shape: num_test x 1
     train_sum = (self.X_train ** 2).sum(axis=1)             # Output shape: num_train x 1
     inner_product = (self.X_train @ X.T).T                  # Output shape: num_test x num_train
-    dists = - 2 * inner_product + test_sum + train_sum        # broadcast
+    dists = - 2 * inner_product + test_sum + train_sum        # broadcast"""
+    dists = (((X ** 2)).sum(axis=1) - 2 * (self.X_train @ X.T)).T + ((self.X_train ** 2)).sum(axis=1)
     
     #########################################################################
     #                         END OF YOUR CODE                              #
