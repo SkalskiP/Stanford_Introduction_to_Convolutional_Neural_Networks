@@ -23,8 +23,8 @@ def svm_loss_naive(W, X, y, reg):
   dW = np.zeros(W.shape) # initialize the gradient as zero
 
   # compute the loss and the gradient
-  num_classes = W.shape[1]
-  num_train = X.shape[0]
+  num_classes = W.shape[1]      # C
+  num_train = X.shape[0]        # N
   loss = 0.0
   for i in xrange(num_train):
     scores = X[i].dot(W)
@@ -35,13 +35,17 @@ def svm_loss_naive(W, X, y, reg):
       margin = scores[j] - correct_class_score + 1 # note delta = 1
       if margin > 0:
         loss += margin
+        dW[:, j] += X[i]
+        dW[:, y[i]] -= X[i]
 
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
+  dW /= num_train
   loss /= num_train
 
   # Add regularization to the loss.
-  loss += reg * np.sum(W * W)
+  loss += 0.5 * reg * np.sum(W * W)
+  dW += reg * W
 
   #############################################################################
   # TODO:                                                                     #
@@ -64,13 +68,29 @@ def svm_loss_vectorized(W, X, y, reg):
   """
   loss = 0.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
+  delta = 1.0
 
   #############################################################################
   # TODO:                                                                     #
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+  
+  # Product of the minibatch of data and weight matrix
+  scores = X @ W
+  # np.arange return evenly spaced values within a given interval.
+  # first argument is np.array with id of rows second is np array with ids of columns
+  corr_score = scores[np.arange(y.shape[0]), y]
+  # np.newaxis is used to increase the dimension of the existing array
+  # For each row: we take row from scores we subtract corr_score corresponding
+  # to this row and add 1
+  margins = np.maximum(0, scores - corr_score[:, np.newaxis] + delta)
+  margins[np.arange(y.shape[0]), y] = 0
+  loss = np.sum(margins)
+  
+  loss /= y.shape[0] # get mean
+  loss += 0.5 * reg * np.sum(W * W) # regularization
+  
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -85,7 +105,15 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  X_mask = np.zeros(margins.shape)
+  X_mask[margins > 0] = 1
+  # for each sample, find the total number of classes where margin > 0
+  incorrect_counts = np.sum(X_mask, axis=1)
+  X_mask[np.arange(y.shape[0]), y] = -incorrect_counts
+  dW = X.T.dot(X_mask)
+
+  dW /= y.shape[0] # average out weights
+  dW += reg*W # regularize the weights
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
