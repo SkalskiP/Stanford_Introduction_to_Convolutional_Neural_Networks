@@ -77,7 +77,7 @@ def svm_loss_vectorized(W, X, y, reg):
   #############################################################################
   
   # Product of the minibatch of data and weight matrix
-  scores = X @ W
+  scores = np.dot(W, X)
   # np.arange return evenly spaced values within a given interval.
   # first argument is np.array with id of rows second is np array with ids of columns
   corr_score = scores[np.arange(y.shape[0]), y]
