@@ -81,7 +81,33 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  
+  n_examples = X.shape[0]
+  n_classes = W.shape[1]
+  
+  # computing scores
+  S = X @ W
+  # Dividing large numbers can be numerically unstable, so it is important to use a normalization trick.
+  # http://cs231n.github.io/linear-classify/#softmax
+  S = S - S.max(axis=1, keepdims=True)
+  # Exp of scores vector
+  EX_S = np.exp(S)
+  # Sum of exp in each row
+  EX_SUM = np.sum(EX_S, axis=1)
+  # Exp for true classes
+  EX_TRUE = EX_S[np.arange(n_examples), y]
+  # Loss
+  loss = (-np.log(EX_TRUE / EX_SUM)).sum() / n_examples + reg * np.sum(W ** 2)
+  
+  # Computing gradient
+  grad = (X.T / EX_SUM)
+  dW += (grad @ EX_S)
+  for i in range(n_classes):
+    dW[:, i] -= X[np.argwhere(y == i)].sum(axis=0).squeeze()
+
+  dW /= n_examples
+  dW += reg * 2 * W
+  
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
