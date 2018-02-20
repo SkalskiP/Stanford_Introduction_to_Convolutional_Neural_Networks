@@ -30,10 +30,37 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+
+  n_examples = X.shape[0]
+  n_classes = W.shape[1]
+  
+  # looping over training data
+  for i in range(n_examples):
+      # computing scores for single example
+      s = X[i] @ W
+      # Dividing large numbers can be numerically unstable, so it is important to use a normalization trick.
+      # http://cs231n.github.io/linear-classify/#softmax
+      s -= np.max(s)
+      # Exp of scores vector
+      ex_s = np.exp(s)
+      # Exp of correct score
+      cor_s = np.exp(s[y[i]])
+      loss += -np.log(cor_s/np.sum(ex_s))
+      
+      # Computing gradient
+      grad = X[i] / np.sum(ex_s)
+      for j in range(n_classes):
+        dW[:, j] += grad * (np.exp(s[j]))
+      dW[:, y[i]] -= X[i]
+
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
+
+  loss /= n_examples
+  loss += reg * np.sum(W ** 2)
+  dW /= n_examples
+  dW += reg * 2 * W
 
   return loss, dW
 
